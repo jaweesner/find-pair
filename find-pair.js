@@ -1,36 +1,42 @@
 const fs = require('fs');
+const path = require('path'); 
  
-function findPair (file, balance){
-   //get prices into memory. Assumption that file can be stored in memory.
-   //if file too large to reside in memeory, could refactor to read data file in chunks.
-  // priceArr = <TODO> PROCESS FILE </TODO>;
-  const priceArr = JSON.parse(file)
-
-  console.log(balance, typeof balance)
-  console.log(priceArr, typeof priceArr)
-  
-
-   //array might not fit entirely in memory
-   //assumption is that virtual paging in this case will not cause significant issues.
+async function findPair (file, balance) {
+   //get prices into memory. Assumption that file can be stored in memory/virtual paging will not cause significant issues.
+   try {
+    var priceArr = await csvToArr(file);
+   } catch (e) {
+     console.error('Error reading file \n', e)
+    return new Error('Error reading file')
+   }
+   if (priceArr.length<2){
+     throw new Error('Two items or more must be in file')
+   }
+   balance = parseInt(balance);
+   if (!balance){
+     throw new Error('Balance argument must be a number and is a required parameter')
+   }
 
    let smallPointer = priceArr[0];
    let smallIndex = 0;
    let largeIndex = 1;
    let largePointer = priceArr[largeIndex];
-   //early end if falsy set 
+   console.log(priceArr)
+   //early end if set doesn't contain valid values
    if(smallPointer.price + largePointer.price > balance){
+     console.log('Not possible');
      return 'Not possible'
    }
    //get pointer to the max value that can be added to min value
    //perform a bin search to get the largest value not oversize
-   while(balance > smallPointer.price + largePointer.price){
+   while((balance > smallPointer.price + largePointer.price) && largePointer){
      //<TODO>
-     
+     console.log(largePointer)
       largePointer = priceArr[++largeIndex];
+      console.log(largePointer)
      // </TODO>
    }
    largePointer = priceArr[--largeIndex];
-
    let minDifference = balance - (largePointer.price + smallPointer.price);
    let minSmall = smallPointer;
    let minLarge = largePointer;
@@ -54,9 +60,9 @@ function findPair (file, balance){
        minLarge = largePointer;
      }
    }
-
-     return `${minSmall.name} ${minSmall.price} ${minLarge.name} ${minLarge.price}`
-   };
+ console.log(`${minSmall.name} ${minSmall.price} ${minLarge.name} ${minLarge.price}`)
+  return `${minSmall.name} ${minSmall.price} ${minLarge.name} ${minLarge.price}`
+};
 
 
    
@@ -71,7 +77,8 @@ function findPair (file, balance){
    //start off with sanity check with first two values in list. If not less than the balance, not Possible. Only case which is true. 
    //sorted array of tuples. keep track of smallest difference
    //two pointers, set inital state with smallP at arr[0], iterate over array to arr[i] where arr[i] is less than balance - i
-console.log(findPair(process.argv[2], process.argv[3]));
+//console.log(findPair(process.argv[2], process.argv[3]));
+findPair(process.argv[2], process.argv[3])
 
 
 
@@ -97,3 +104,24 @@ gift card, print “Not possible”. You don’t have to return every possible p
 that is under the balance, just one such pair.
 
 */
+function csvToArr(filepath){
+  return new Promise ((resolve, reject)=>{
+    const data = [];
+    //using readstream instead of readfile for scalibility
+    const readstream = fs.createReadStream(path.resolve(__dirname, filepath));
+    readstream.on('data', (chunk)=> data.push(chunk))
+      .on('error', (err) => reject (new Error(err)))
+      .on('end', () => {
+        resolve(data.join('')
+          .split('\n')
+          .map(line => {
+            let lineItems = line.split(',').map(item => item.trim()); 
+            return {
+              name: lineItems[0],
+              price: parseInt(lineItems[1])
+            } 
+          })
+        )
+      });
+  });
+}
