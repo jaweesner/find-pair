@@ -1,0 +1,12 @@
+{
+  "name": "find-pair",
+  "version": "1.0.0",
+  "description": "find two values in file that most closely match a given balance",
+  "main": "find-pair.js",
+  "bin": {
+    "find-pair": "find-pair.js"
+  },
+  "scripts": {
+    "test": "npm run test.js"
+  },
+}
