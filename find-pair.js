@@ -73,6 +73,7 @@ function findPair (file, balance) {
         });
     });
   }
+  //check needed to only run when file directly run in node process (not in test process)
   if (path.basename(process.argv[1]) === 'find-pair.js'){
     findPair(process.argv[2], process.argv[3]).then(val => console.log(val)).catch(err => console.error(err));
   }

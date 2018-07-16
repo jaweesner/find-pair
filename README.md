@@ -54,6 +54,4 @@ node test
 
 ### Complexity Notes: 
 
-Time complexity is O(n). 
-- The main algorithm will look at each item only once
-- The CSV parsing function will iterate sequentially over the file data several times to break the data into its component parts. Alternatively, a regEx could have been used for simpler code, but unsure what the complexity would be behind the scenes. 
+Time complexity is O(n) (both best and worst case);
